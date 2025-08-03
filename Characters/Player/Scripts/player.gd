@@ -1,20 +1,32 @@
-class_name Player extends CharacterBody2D
+class_name Player
+extends CharacterBody2D
+
+const RUN_SPEED := 200.0
+const JUMP_VELOCITY := -300.0
 
 var gravity := ProjectSettings.get("physics/2d/default_gravity") as float
-var move_speed : float = 100.0
 
+@onready var sprite_2d: Sprite2D = $Sprite2D
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
-#func _process(delta: float) -> void:
-	#
-	#var direction : Vector2 = Vector2.ZERO
-	#direction.x = Input.get_action_strength("right") - Input.get_action_strength("left")
-	#direction.y = Input.get_action_strength("down") - Input.get_action_strength("up")
-	#
-	#velocity = direction * move_speed
-	#
-	#pass
 
 func _physics_process(delta: float) -> void:
-	print("Delta time: ", delta)
+	var direction := Input.get_axis("left", "right")
+	velocity.x = direction * RUN_SPEED
 	velocity.y += gravity * delta
+	
+	if is_on_floor() and Input.is_action_just_pressed("jump"):
+		velocity.y = JUMP_VELOCITY
+	
+	if is_on_floor():
+		if is_zero_approx(direction):
+			animation_player.play("idle")
+		else:
+			animation_player.play("running")
+	else:
+		animation_player.play("idle")
+	
+	if not is_zero_approx(direction):
+		sprite_2d.flip_h = direction < 0
+	
 	move_and_slide()
